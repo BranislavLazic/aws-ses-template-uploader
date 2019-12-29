@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
+	"github.com/olekukonko/tablewriter"
 )
 
 var (
@@ -75,9 +76,12 @@ func handleListTemplates(awsSES *ses.SES) error {
 	if err != nil {
 		return err
 	}
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Name", "Created"})
 	for _, data := range out.TemplatesMetadata {
-		fmt.Printf("Name: %s, Created: %v\n", *data.Name, data.CreatedTimestamp)
+		table.Append([]string{*data.Name, data.CreatedTimestamp.Local().Format("2 Jan 2006 15:04:05")})
 	}
+	table.Render()
 	return nil
 }
 
@@ -88,7 +92,7 @@ func handleCreateTemplate(awsSES *ses.SES, template *ses.Template) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("successfully created %s template", *template.TemplateName)
+	fmt.Printf("Successfully created %s template\n", *template.TemplateName)
 	return nil
 }
 func handleDeleteTemplate(awsSES *ses.SES, templateName string) error {
@@ -96,7 +100,7 @@ func handleDeleteTemplate(awsSES *ses.SES, templateName string) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("successfully deleted %s template", templateName)
+	fmt.Printf("Successfully deleted %s template\n", templateName)
 	return nil
 }
 

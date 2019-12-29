@@ -34,7 +34,7 @@ To delete a template:
 
 ```
 {
-  "TemplateName": "planner-email-template",
+  "TemplateName": "test-email-template",
   "SubjectPart": "Test subject",
   "HtmlPart": "<div>Test</div>",
   "TextPart": "Test"
