@@ -26,6 +26,15 @@ type Template struct {
 	TextPart     string `json:"TextPart"`
 }
 
+func newTemplate() *Template {
+	return &Template{
+		TemplateName: "",
+		SubjectPart:  "",
+		HTMLPart:     "",
+		TextPart:     "",
+	}
+}
+
 func parseArgs(awsSES *ses.SES, args []string) error {
 
 	switch args[1] {
@@ -33,7 +42,7 @@ func parseArgs(awsSES *ses.SES, args []string) error {
 		return handleListTemplates(awsSES)
 
 	case "create":
-		var template Template
+		template := newTemplate()
 		if len(args) > 2 {
 			file, err := os.Open(args[2])
 			if err != nil {
@@ -61,8 +70,8 @@ func parseArgs(awsSES *ses.SES, args []string) error {
 	return nil
 }
 
-func handleListTemplates(svc *ses.SES) error {
-	out, err := svc.ListTemplates(&ses.ListTemplatesInput{})
+func handleListTemplates(awsSES *ses.SES) error {
+	out, err := awsSES.ListTemplates(&ses.ListTemplatesInput{})
 	if err != nil {
 		return err
 	}
@@ -72,8 +81,8 @@ func handleListTemplates(svc *ses.SES) error {
 	return nil
 }
 
-func handleCreateTemplate(svc *ses.SES, template *ses.Template) error {
-	_, err := svc.CreateTemplate(&ses.CreateTemplateInput{
+func handleCreateTemplate(awsSES *ses.SES, template *ses.Template) error {
+	_, err := awsSES.CreateTemplate(&ses.CreateTemplateInput{
 		Template: template,
 	})
 	if err != nil {
@@ -82,8 +91,8 @@ func handleCreateTemplate(svc *ses.SES, template *ses.Template) error {
 	log.Printf("successfully created %s template", *template.TemplateName)
 	return nil
 }
-func handleDeleteTemplate(svc *ses.SES, templateName string) error {
-	_, err := svc.DeleteTemplate(&ses.DeleteTemplateInput{TemplateName: &templateName})
+func handleDeleteTemplate(awsSES *ses.SES, templateName string) error {
+	_, err := awsSES.DeleteTemplate(&ses.DeleteTemplateInput{TemplateName: &templateName})
 	if err != nil {
 		return err
 	}
