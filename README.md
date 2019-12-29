@@ -2,6 +2,10 @@
 
 Tool for upload of templates for AWS SES
 
+## Get it
+
+Download the latest release from `https://github.com/BranislavLazic/aws-ses-template-uploader/releases`
+
 ## Use it
 
 Export AWS access key id, secret access key and region as env. variables:
@@ -11,6 +15,8 @@ Export AWS access key id, secret access key and region as env. variables:
 `export AWS_SECRET_ACCESS_KEY=your-secret-access-key`
 
 `export AWS_DEFAULT_REGION=your-default-region`
+
+### Commands
 
 To see list of your templates:
 
@@ -23,3 +29,14 @@ To create a template from JSON file:
 To delete a template:
 
 `./aws-ses-template-uploader delete template-name`
+
+## Example of template
+
+```
+{
+  "TemplateName": "planner-email-template",
+  "SubjectPart": "Test subject",
+  "HtmlPart": "<div>Test</div>",
+  "TextPart": "Test"
+}
+```

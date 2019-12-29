@@ -19,15 +19,15 @@ var (
 	awsDefaultRegion   = os.Getenv("AWS_DEFAULT_REGION")
 )
 
-type Template struct {
+type template struct {
 	TemplateName string `json:"TemplateName"`
 	SubjectPart  string `json:"SubjectPart"`
 	HTMLPart     string `json:"HtmlPart"`
 	TextPart     string `json:"TextPart"`
 }
 
-func newTemplate() *Template {
-	return &Template{
+func newTemplate() *template {
+	return &template{
 		TemplateName: "",
 		SubjectPart:  "",
 		HTMLPart:     "",
@@ -36,7 +36,6 @@ func newTemplate() *Template {
 }
 
 func parseArgs(awsSES *ses.SES, args []string) error {
-
 	switch args[1] {
 	case "list":
 		return handleListTemplates(awsSES)
@@ -59,6 +58,7 @@ func parseArgs(awsSES *ses.SES, args []string) error {
 			})
 		}
 		return errors.New("provide a template as JSON file")
+
 	case "delete":
 		if len(args) > 2 {
 			return handleDeleteTemplate(awsSES, args[2])
