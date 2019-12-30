@@ -27,6 +27,10 @@ To create a template from JSON file:
 
 `$ aws-ses-template-uploader create /path/template.json`
 
+To update a template:
+
+`$ aws-ses-template-uploader update /path/template.json`
+
 To delete a template:
 
 `$ aws-ses-template-uploader delete template-name`
