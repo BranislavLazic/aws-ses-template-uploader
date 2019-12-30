@@ -4,7 +4,8 @@ CLI tool for upload of templates for AWS SES
 
 ## Get it
 
-Download the [latest release](https://github.com/BranislavLazic/aws-ses-template-uploader/releases).
+Download the [latest release](https://github.com/BranislavLazic/aws-ses-template-uploader/releases) or
+checkout project and build it locally by executing `make` command.
 
 ## Use it
 

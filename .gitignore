@@ -1,1 +1,4 @@
 aws-ses-template-uploader
+/binaries
+/release
+.DS_Store

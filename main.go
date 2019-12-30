@@ -27,44 +27,20 @@ type template struct {
 	TextPart     string `json:"TextPart"`
 }
 
-func newTemplate() *template {
-	return &template{
-		TemplateName: "",
-		SubjectPart:  "",
-		HTMLPart:     "",
-		TextPart:     "",
-	}
-}
-
-func parseArgs(awsSES *ses.SES, args []string) error {
+func parseCLIArgs(awsSES *ses.SES, args []string) error {
 	switch args[1] {
 	case "list":
 		return handleListTemplates(awsSES)
-
 	case "create":
-		template := newTemplate()
-		if len(args) > 2 {
-			file, err := os.Open(args[2])
-			if err != nil {
-				log.Fatalf("file does not exist")
-				os.Exit(1)
-			}
-			byteValue, _ := ioutil.ReadAll(file)
-			json.Unmarshal(byteValue, &template)
-			return handleCreateTemplate(awsSES, &ses.Template{
-				TemplateName: &template.TemplateName,
-				SubjectPart:  &template.SubjectPart,
-				HtmlPart:     &template.HTMLPart,
-				TextPart:     &template.TextPart,
-			})
-		}
-		return errors.New("provide a template as JSON file")
-
+		handleSaveTemplate(awsSES, args, func(awsSES *ses.SES, template *ses.Template) error {
+			return handleCreateTemplate(awsSES, template)
+		})
+	case "update":
+		handleSaveTemplate(awsSES, args, func(awsSES *ses.SES, template *ses.Template) error {
+			return handleUpdateTemplate(awsSES, template)
+		})
 	case "delete":
-		if len(args) > 2 {
-			return handleDeleteTemplate(awsSES, args[2])
-		}
-		return errors.New("provide a template name")
+		handleDeleteTemplate(awsSES, args)
 	default:
 		break
 	}
@@ -79,10 +55,40 @@ func handleListTemplates(awsSES *ses.SES) error {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Name", "Created"})
 	for _, data := range out.TemplatesMetadata {
-		table.Append([]string{*data.Name, data.CreatedTimestamp.Local().Format("2 Jan 2006 15:04:05")})
+		table.Append([]string{
+			*data.Name,
+			data.CreatedTimestamp.Local().Format("2 Jan 2006 15:04:05"),
+		})
 	}
 	table.Render()
 	return nil
+}
+
+func parseTemplate(jsonFile string) (*ses.Template, error) {
+	var template *template
+	file, err := os.Open(jsonFile)
+	if err != nil {
+		return nil, err
+	}
+	byteValue, _ := ioutil.ReadAll(file)
+	json.Unmarshal(byteValue, &template)
+	return &ses.Template{
+		TemplateName: &template.TemplateName,
+		SubjectPart:  &template.SubjectPart,
+		HtmlPart:     &template.HTMLPart,
+		TextPart:     &template.TextPart,
+	}, nil
+}
+
+func handleSaveTemplate(awsSES *ses.SES, args []string, saveFn func(*ses.SES, *ses.Template) error) error {
+	if len(args) > 2 {
+		template, err := parseTemplate(args[2])
+		if err != nil {
+			return err
+		}
+		return saveFn(awsSES, template)
+	}
+	return errors.New("provide a template as JSON file")
 }
 
 func handleCreateTemplate(awsSES *ses.SES, template *ses.Template) error {
@@ -95,18 +101,36 @@ func handleCreateTemplate(awsSES *ses.SES, template *ses.Template) error {
 	fmt.Printf("Successfully created %s template\n", *template.TemplateName)
 	return nil
 }
-func handleDeleteTemplate(awsSES *ses.SES, templateName string) error {
-	_, err := awsSES.DeleteTemplate(&ses.DeleteTemplateInput{TemplateName: &templateName})
+
+func handleUpdateTemplate(awsSES *ses.SES, template *ses.Template) error {
+	_, err := awsSES.UpdateTemplate(&ses.UpdateTemplateInput{
+		Template: template,
+	})
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Successfully deleted %s template\n", templateName)
+	fmt.Printf("Successfully updated %s template\n", *template.TemplateName)
 	return nil
 }
 
+func handleDeleteTemplate(awsSES *ses.SES, args []string) error {
+	if len(args) > 2 {
+		templateName := args[2]
+		_, err := awsSES.DeleteTemplate(&ses.DeleteTemplateInput{
+			TemplateName: &templateName,
+		})
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Successfully deleted %s template\n", templateName)
+		return nil
+	}
+	return errors.New("provide a template name")
+}
+
 func main() {
-	// Command arguments: list, create, delete... with template name or template file.
-	cmdArgs := os.Args
+	// CLI arguments: list, create, delete... with template name or template file.
+	args := os.Args
 	// Open AWS session
 	awsSession, err := session.NewSession(&aws.Config{
 		Region: aws.String(awsDefaultRegion)},
@@ -118,7 +142,7 @@ func main() {
 	}
 
 	// Parse command line arguments and provide AWS SES value
-	err = parseArgs(ses.New(awsSession), cmdArgs)
+	err = parseCLIArgs(ses.New(awsSession), args)
 	if err != nil {
 		log.Fatalln(err)
 		os.Exit(1)
