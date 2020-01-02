@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -32,15 +33,15 @@ func parseCLIArgs(awsSES *ses.SES, args []string) error {
 	case "list":
 		return handleListTemplates(awsSES)
 	case "create":
-		handleSaveTemplate(awsSES, args, func(awsSES *ses.SES, template *ses.Template) error {
+		return handleSaveTemplate(awsSES, args, func(awsSES *ses.SES, template *ses.Template) error {
 			return handleCreateTemplate(awsSES, template)
 		})
 	case "update":
-		handleSaveTemplate(awsSES, args, func(awsSES *ses.SES, template *ses.Template) error {
+		return handleSaveTemplate(awsSES, args, func(awsSES *ses.SES, template *ses.Template) error {
 			return handleUpdateTemplate(awsSES, template)
 		})
 	case "delete":
-		handleDeleteTemplate(awsSES, args)
+		return handleDeleteTemplate(awsSES, args)
 	default:
 		break
 	}
@@ -69,6 +70,10 @@ func parseTemplate(jsonFile string) (*ses.Template, error) {
 	file, err := os.Open(jsonFile)
 	if err != nil {
 		return nil, err
+	}
+	fileName := file.Name()
+	if !strings.HasSuffix(fileName, ".json") {
+		return nil, fmt.Errorf("%s is not a JSON file", fileName)
 	}
 	byteValue, _ := ioutil.ReadAll(file)
 	json.Unmarshal(byteValue, &template)
