@@ -29,6 +29,13 @@ type template struct {
 }
 
 func parseCLIArgs(awsSES *ses.SES, args []string) error {
+	if len(args) < 2 {
+		return errors.New(`provide one of the following command line arguments: 
+	list
+	create file.json
+	update file.json
+	delete`)
+	}
 	switch args[1] {
 	case "list":
 		return handleListTemplates(awsSES)
