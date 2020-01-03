@@ -147,16 +147,13 @@ func main() {
 	awsSession, err := session.NewSession(&aws.Config{
 		Region: aws.String(awsDefaultRegion)},
 	)
-
 	if err != nil {
 		log.Fatalln(err)
-		os.Exit(1)
 	}
 
 	// Parse command line arguments and provide AWS SES value
 	err = parseCLIArgs(ses.New(awsSession), args)
 	if err != nil {
 		log.Fatalln(err)
-		os.Exit(1)
 	}
 }
