@@ -1,6 +1,6 @@
 APP=aws-ses-template-uploader
 MODULE := github.com/BranislavLazic/aws-ses-template-uploader
-VERSION := v0.2
+VERSION := v0.3
 
 .PHONY: clean binaries
 
